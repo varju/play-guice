@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+    <title>
+        Template Template - Activator Template
+    </title>
+</head>
+<body>
+<div>
+    <h2>
+        Play with Dependency Injection using Google Guice
+    </h2>
+
+    <p>
+        <a href="http://en.wikipedia.org/wiki/Dependency_injection" target="_blank">Dependency injection</a> is a design
+        pattern that frees your code from creational concerns, making your code cleaner and easier to test.
+    </p>
+
+    <p>
+        This tutorial illustrates how easy it is to use a dependency injection framework with Play.
+        <a href="https://code.google.com/p/google-guice/" target="_blank">Guice</a> is used here, however other
+        dependency injection frameworks such as <a href="http://www.springsource.org/spring-framework" target="_blank">Spring</a>
+        can be supported in a similar manner.
+    </p>
+
+    <p>
+        Although Scala is used here, Play and Java can also easily use dependency injection frameworks. Check out the
+        <a href="https://github.com/typesafehub/play-spring-data">Play Spring Data</a> example for a Java example
+        of using Spring with Play.
+    </p>
+
+    <p>
+        This tutorial will take about 10 minutes to complete and assumes that you are already familiar with the anatomy
+        of a Play application.
+    </p>
+</div>
+<div>
+    <h2>
+        The Mission
+    </h2>
+
+    <p>
+        The mission is to use the familiar starting point of a Play application and enhance it with dependency
+        injection. We will be taking the
+        <a href="#code/app/controllers/Application.scala" class="shortcut">Application</a> class and injecting a a
+        <a href="#code/app/services/TextGenerator.scala" class="shortcut">TextGenerator</a> instance into it.
+        TextGenerator is an abstract class and we have a concrete implementation of it in the form of
+        <a href="#code/app/services/TextGenerator.scala" class="shortcut">WelcomeTextGenerator</a>.
+    </p>
+
+    <p>
+        TextGenerator is a rudimentary service that simply generates text. You'll have more useful
+        services in your code e.g. a repository service that is backed by a concrete class to communicate with a
+        database. By using dependency injection we can configure the type of service required outside of the class that
+        needs to call on it i.e. <a href="#code/app/controllers/Application.scala" class="shortcut">Application</a> in
+        our case.
+    </p>
+</div>
+<div>
+    <h2>
+        @Inject and @Singleton
+    </h2>
+
+    <p>
+        <a href="http://docs.oracle.com/javaee/6/api/javax/inject/Inject.html" target="_blank">@Inject</a> is the
+        <a href="http://jcp.org/en/jsr/detail?id=330" target="_blank">JSR-330</a> standard for declaring that an object
+        is required to be injected into another object.
+        <a href="http://docs.oracle.com/javaee/6/api/javax/inject/Singleton.html" target="_blank">@Singleton</a> is
+        also part of JSR-330 and declares that a single instance is to be shared across multiple injections.
+    </p>
+
+    <p>
+        Our shared <a href="#code/app/controllers/Application.scala" class="shortcut">Application</a> instance declares
+        that it requires an instance of the TextGenerator type. We are using what is known as
+        <a href="http://misko.hevery.com/2009/02/19/constructor-injection-vs-setter-injection/">"constructor
+            injection"</a> here, the alternate being what is known as "setter injection". We prefer constructor
+        injection as, once that property is assigned it cannot be changed i.e. the value is
+        <a href="http://en.wikipedia.org/wiki/Immutable_object" target="_blank">immutable and inherently thread safe</a>.
+    </p>
+
+    <p>
+        <a href="#code/app/services/TextGenerator.scala" class="shortcut">TextGenerator</a> does not require anything
+        special in order to be "injectable" i.e. something that can be injected into something else. We have declared
+        <a href="#code/app/services/TextGenerator.scala" class="shortcut">TextGenerator</a> as an abstract class here
+        but it can be any type i.e. a concrete class or a trait (we have used an abstract class in recognition of the
+        "is-a" relation between vs "has-a").
+    </p>
+
+    <p>
+        <a href="#code/app/services/TextGenerator.scala" class="shortcut">WelcomeTextGenerator</a> is a concrete
+        implementation of the TextGenerator. Having the implementation free from the injectable type frees you to
+        provide alternate implementations of it. For this project the application will share a single instance of
+        WelcomeTextGenerator; hence the
+        <a href="http://docs.oracle.com/javaee/6/api/javax/inject/Singleton.html" target="_blank">@Singleton</a>
+        annotation. Our tests will use a mocked version of WelcomeTextGenerator so that the classes that are injected
+        with a TextGenerator can be easily tested.
+    </p>
+
+    <p>
+        Note that although we use @Singleton on the Application and WelcomeTextGenerator, these
+        <a href="https://code.google.com/p/google-guice/wiki/Scopes" target="_blank">"scopes"</a> can be overridden when
+        it comes to binding. Binding is discussed next.
+    </p>
+</div>
+<div>
+    <h2>Binding</h2>
+
+    <p>
+        <a href="#code/app/Global.scala" class="shortcut">Global</a> brings the dependency injection system to life
+        by establishing a <a href="http://en.wikipedia.org/wiki/Dependency_graph" target="_blank">dependency graph</a>
+        and then providing Play a means of resolving object instances under its care.
+    </p>
+
+    <p>
+        First of all an
+        <a href="http://google-guice.googlecode.com/git/javadoc/com/google/inject/Injector.html" target="_blank">Injector</a>
+        is created. An Injector is responsible building the dependency graph. Our injector
+        states that whenever a type of <code>TextGenerator</code> is required then use an instance of
+        <code>WelcomeTextGenerator</code>.
+    </p>
+
+    <p>
+        The next thing is that <code>getControllerInstance</code> will return object instances from the dependency
+        injection system.
+    </p>
+
+    <p>
+        An interesting point to note is that the <a href="#code/app/Global.scala" class="shortcut">Global</a> object
+        is the only place in our application where there is Guice specific code. This is because JSR-330's @Inject and
+        @Singleton annotations are being used. You should therefore be able to use this project's main files and other
+        dependency injection frameworks with very little modification.
+    </p>
+</div>
+<div>
+    <h2>
+        Routing Concerns
+    </h2>
+
+    <p>
+        By convention Play looks for an object instance when resolving routes. However
+        <a href="#code/conf/routes" class="shortcut">routes</a> can be configured so that
+        locating the route instance will call upon the <a href="#code/app/Global.scala" class="shortcut">Global</a>
+        object's <code>getControllerInstance</code> method. A simple "@" symbol in front of the controller method
+        path in the <a href="#code/conf/routes" class="shortcut">routes</a> is all that is required
+        i.e. <code>@controllers.Application.index</code>.
+    </p>
+</div>
+<div>
+    <h2>
+        Testing
+    </h2>
+
+    <p>
+        <a href="#code/test/controllers/ApplicationTest.scala" class="shortcut">ApplicationTest</a>
+        illustrates a benefit of dependency injection where a
+        <a href="http://en.wikipedia.org/wiki/Mock_object" target="_blank">mock</a> of the
+        <a href="#code/app/services/TextGenerator.scala" class="shortcut">TextGenerator</a> is used for testing
+        purposes. Using a mock makes testing easier as we are not interested in testing the actual type implemented
+        by the mock - just the calls that we make upon it.
+    </p>
+</div>
+</body>
+</html>
