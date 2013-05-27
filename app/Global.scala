@@ -3,12 +3,12 @@ import play.api.GlobalSettings
 import services.{WelcomeTextGenerator, TextGenerator}
 
 /**
- * Set up general configuration for the application. In particular we set up the Guice context.
+ * Set up the Guice injector and provide the mechanism for return objects from the dependency graph.
  */
 object Global extends GlobalSettings {
 
   /**
-   * Bind types such that whenever TextGenerator is requried, an instance of TextGenerator will be used.
+   * Bind types such that whenever TextGenerator is required, an instance of WelcomeTextGenerator will be used.
    */
   val injector = Guice.createInjector(new AbstractModule {
     protected def configure() {
