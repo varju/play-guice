@@ -26,11 +26,11 @@
     <p>
         Although Scala is used here, Play and Java can also easily use dependency injection frameworks. Check out the
         <a href="https://github.com/typesafehub/play-spring-data">Play Spring Data</a> example for a Java example
-        of using Spring with Play.
+        of using Spring with Play after this tutorial.
     </p>
 
     <p>
-        This tutorial will take about 10 minutes to complete and assumes that you are already familiar with the anatomy
+        This tutorial will take about 10 minutes to complete and assumes that you are already familiar with the basics
         of a Play application.
     </p>
 </div>
@@ -52,8 +52,7 @@
         TextGenerator is a rudimentary service that simply generates text. You'll have more useful
         services in your code e.g. a repository service that is backed by a concrete class to communicate with a
         database. By using dependency injection we can configure the type of service required outside of the class that
-        needs to call on it i.e. <a href="#code/app/controllers/Application.scala" class="shortcut">Application</a> in
-        our case.
+        needs to call on it.
     </p>
 </div>
 <div>
@@ -74,7 +73,7 @@
         that it requires an instance of the TextGenerator type. We are using what is known as
         <a href="http://misko.hevery.com/2009/02/19/constructor-injection-vs-setter-injection/">"constructor
             injection"</a> here, the alternate being what is known as "setter injection". We prefer constructor
-        injection as, once that property is assigned it cannot be changed i.e. the value is
+        injection as once that property is assigned it cannot be changed i.e. the value is
         <a href="http://en.wikipedia.org/wiki/Immutable_object" target="_blank">immutable and inherently thread safe</a>.
     </p>
 
@@ -88,7 +87,7 @@
 
     <p>
         <a href="#code/app/services/TextGenerator.scala" class="shortcut">WelcomeTextGenerator</a> is a concrete
-        implementation of the TextGenerator. Having the implementation free from the injectable type frees you to
+        implementation of the TextGenerator. Having the implementation separated from the injectable type frees you to
         provide alternate implementations of it. For this project the application will share a single instance of
         WelcomeTextGenerator; hence the
         <a href="http://docs.oracle.com/javaee/6/api/javax/inject/Singleton.html" target="_blank">@Singleton</a>
@@ -108,7 +107,7 @@
     <p>
         <a href="#code/app/Global.scala" class="shortcut">Global</a> brings the dependency injection system to life
         by establishing a <a href="http://en.wikipedia.org/wiki/Dependency_graph" target="_blank">dependency graph</a>
-        and then providing Play a means of resolving object instances under its care.
+        and then providing Play a means of resolving object instances under its management.
     </p>
 
     <p>
@@ -154,9 +153,40 @@
         <a href="#code/test/controllers/ApplicationTest.scala" class="shortcut">ApplicationTest</a>
         illustrates a benefit of dependency injection where a
         <a href="http://en.wikipedia.org/wiki/Mock_object" target="_blank">mock</a> of the
-        <a href="#code/app/services/TextGenerator.scala" class="shortcut">TextGenerator</a> is used for testing
+        <a href="#code/app/services/TextGenerator.scala" class="shortcut">TextGenerator</a> is used for
+        <a href="https://en.wikipedia.org/wiki/Unit_testing" target="_blank">unit testing</a>
         purposes. Using a mock makes testing easier as we are not interested in testing the actual type implemented
         by the mock - just the calls that we make upon it.
+    </p>
+
+    <p>
+        The <a href="#code/test/controllers/ApplicationIT.scala" class="shortcut">ApplicationIT</a> is an
+        <a href="https://en.wikipedia.org/wiki/Integration_test" target="_blank">integration test</a> that brings our
+        dependency injection system into life and sets expectations on what should be seen upon invoking the controller.
+    </p>
+
+    <p>
+        <a href="#code/test/controllers/ApplicationFT.scala" class="shortcut">ApplicationFT</a>
+        is a <a href="https://en.wikipedia.org/wiki/Functional_test" target="_blank">functional test</a>. Note that the
+        entire application is run and the test is around sending HTTP requests and verifying their responses. Just as
+        with the integration test, the dependency injection system is tested thoroughly.
+    </p>
+</div>
+<div>
+    <h2>
+        Conclusion
+    </h2>
+
+    <p>
+        This tutorial has introduced how Google Guice can be used for developing Play applications. Other dependency
+        injection systems such as Spring can be similarly incorporated. The Global object establishes the dependency
+        injection system and the routes file requires classes to be referenced via the '@' symbol.
+    </p>
+
+    <p>
+        By separating the creational concerns from a class, classes can remain focused on the job they are intended to
+        do and have their code remain clean and devoted to that purpose. In addition your classes will become more
+        testable, particularly from a unit test perspective, given that injectable types can easily be mocked.
     </p>
 </div>
 </body>
