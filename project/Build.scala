@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
-import play.Project._
+import play.Play.autoImport._
+import PlayKeys._
 
 object ApplicationBuild extends Build {
 
@@ -15,8 +16,10 @@ object ApplicationBuild extends Build {
   )
 
 
-  val main = play.Project(appName, appVersion, appDependencies).settings(
-    // Add your own project settings here      
+  val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
+    version := appVersion,
+    libraryDependencies ++= appDependencies,
+    scalaVersion := "2.11.1"
   )
 
 }
